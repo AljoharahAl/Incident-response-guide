@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>What Do I Do If...? — Incident Response Guide</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel-2:#1e242c; --line:#2a323c;
+    --text:#e6edf3; --text-dim:#8b949e; --text-mute:#5c6773;
+    --teal:#3fd6c4; --teal-soft:#123934;
+    --amber:#e3b341; --amber-soft:#3d3115;
+    --red:#f0625a; --red-soft:#3a1f1e;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--sans); padding:0 0 60px; line-height:1.7;}
+  .wrap{max-width:920px; margin:0 auto; padding:0 20px;}
+  nav{border-bottom:1px solid var(--line); padding:16px 0; position:sticky; top:0; background:rgba(13,17,23,.92); backdrop-filter:blur(6px); z-index:10;}
+  nav .wrap{display:flex; justify-content:space-between; align-items:center;}
+  .logo{font-weight:700; font-size:15px;}
+  .logo span{color:var(--teal);}
+  .links{display:flex; gap:16px; font-size:12.5px; color:var(--text-dim); flex-wrap:wrap;}
+  .links a{color:inherit; text-decoration:none;}
+  .hero{padding:52px 0 30px; text-align:center;}
+  .kicker{font-family:var(--mono); font-size:10.5px; color:var(--teal); background:var(--teal-soft); display:inline-block; padding:5px 12px; border-radius:20px; margin-bottom:16px;}
+  .hero h1{font-size:27px; font-weight:800; margin:0 0 12px;}
+  .hero p{font-size:14px; color:var(--text-dim); max-width:560px; margin:0 auto;}
+  section{padding:34px 0; border-top:1px solid var(--line);}
+  .eyebrow{font-family:var(--mono); font-size:10.5px; color:var(--teal); margin-bottom:8px;}
+  h2{font-size:19px; margin:0 0 10px;}
+  section > .wrap > p.lead{color:var(--text-dim); font-size:13px; max-width:580px; margin:0 0 22px;}
+  .live-tag{font-family:var(--mono); font-size:10px; color:var(--teal); background:var(--teal-soft); padding:3px 9px; border-radius:20px; display:inline-block; margin-bottom:14px;}
+  .scenario-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px;}
+  @media (max-width:700px){.scenario-grid{grid-template-columns:repeat(2,1fr);}}
+  .scenario-card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 12px; text-align:center; cursor:pointer; font-size:12.5px; transition:border-color .15s, transform .15s;}
+  .scenario-card:hover{border-color:var(--teal); transform:translateY(-2px);}
+  .scenario-card.active{border-color:var(--teal); background:var(--teal-soft);}
+  .scenario-card .ic{font-size:22px; margin-bottom:8px;}
+  #guidePanel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px; display:none;}
+  #guidePanel.show{display:block;}
+  .guide-head{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px; flex-wrap:wrap;}
+  .guide-head h3{font-size:16px; margin:0;}
+  .severity{font-family:var(--mono); font-size:11px; padding:5px 12px; border-radius:20px; white-space:nowrap;}
+  .severity.low{background:var(--teal-soft); color:var(--teal);}
+  .severity.medium{background:var(--amber-soft); color:var(--amber);}
+  .severity.high{background:var(--red-soft); color:var(--red);}
+  .severity.critical{background:#4a1414; color:#ff8177;}
+  .col-title{font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; margin:16px 0 10px;}
+  .col-title.do{color:var(--teal);}
+  .col-title.dont{color:var(--red);}
+  .steps, .donts{margin:0; padding-left:0; list-style:none;}
+  .steps li, .donts li{display:flex; gap:10px; align-items:flex-start; margin-bottom:9px; font-size:13px; color:var(--text-dim);}
+  .steps li .num{flex:none; width:20px; height:20px; border-radius:50%; background:var(--teal-soft); color:var(--teal); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10.5px; font-weight:700;}
+  .donts li .x{flex:none; color:var(--red); font-weight:700;}
+  .notify-box{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:11px 13px; margin-top:14px; font-size:12.5px; color:var(--text-dim);}
+  .notify-box b{color:var(--text);}
+  .empty-hint{text-align:center; color:var(--text-mute); font-size:13px; padding:26px 0;}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:700px){.grid3{grid-template-columns:1fr;}}
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:17px;}
+  .card .ic{font-size:19px; margin-bottom:9px;}
+  .card h3{font-size:13.5px; margin:0 0 6px;}
+  .card p{font-size:12px; color:var(--text-mute); margin:0;}
+  .diagram{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px; overflow-x:auto;}
+  .flow{display:flex; align-items:center; gap:6px; min-width:600px; justify-content:space-between;}
+  .flow .node{flex:1; background:var(--panel-2); border:1px solid var(--line); border-radius:9px; padding:13px 8px; text-align:center; font-size:11.5px;}
+  .flow .node .ic{font-size:18px; margin-bottom:6px;}
+  .flow .node b{display:block; font-size:12px; margin-bottom:2px;}
+  .flow .node span{color:var(--text-mute); font-size:10.5px;}
+  .flow .arrow{color:var(--teal); font-size:16px; flex:none;}
+  @media (max-width:700px){.flow{flex-direction:column;} .flow .arrow{transform:rotate(90deg);}}
+  footer{padding:30px 0; text-align:center; color:var(--text-mute); font-size:11.5px; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<nav>
+  <div class="wrap">
+    <div class="logo">What Do I Do <span>If...?</span></div>
+    <div class="links"><a href="#demo">Try it</a><a href="#how">How it works</a></div>
+  </div>
+</nav>
+<div class="hero">
+  <div class="wrap">
+    <h1>An interactive guide that answers<br>in seconds: what do I do now?</h1>
+    <p>A security incident just happened and you're not sure what the first step is? Pick the scenario from the list below and get clear response steps — without entering any information about yourself or your organization.</p>
+  </div>
+</div>
+<section id="demo">
+  <div class="wrap">
+    <div class="live-tag">● Live demo — fully functional</div>
+    <div class="eyebrow">Try it</div>
+    <h2>Pick a scenario</h2>
+    <div class="scenario-grid" id="scenarioGrid"></div>
+    <div id="guidePanel"></div>
+    <div id="emptyHint" class="empty-hint">Select a scenario above to see the response steps</div>
+  </div>
+</section>
+<section id="how">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>The architecture, simply</h2>
+    <p class="lead">No database, no external connections — every scenario and its guidance is pre-written and stored directly in the page.</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node"><div class="ic">🖱️</div><b>Pick a scenario</b><span>User clicks a card</span></div>
+        <div class="arrow">←</div>
+        <div class="node"><div class="ic">📋</div><b>Scenario bank</b><span>Static JS list of steps</span></div>
+        <div class="arrow">←</div>
+        <div class="node"><div class="ic">🖥️</div><b>Guide displayed</b><span>Steps, mistakes, who to notify</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Features</div>
+    <h2>What the guide offers</h2>
+    <div class="grid3">
+      <div class="card"><div class="ic">🔒</div><h3>Zero sensitive data</h3><p>No personal or organizational information is requested — just a selection from a list.</p></div>
+      <div class="card"><div class="ic">⚡</div><h3>Instant answers</h3><p>Clear steps appear immediately, with no loading or waiting.</p></div>
+      <div class="card"><div class="ic">🚫</div><h3>Common mistakes flagged</h3><p>Not just what to do, but also what to avoid in the same scenario.</p></div>
+      <div class="card"><div class="ic">📞</div><h3>Clear escalation point</h3><p>Each scenario specifies exactly who should be notified.</p></div>
+      <div class="card"><div class="ic">🎯</div><h3>Severity ratings</h3><p>Every scenario is rated from Low to Critical, helping prioritize the response.</p></div>
+      <div class="card"><div class="ic">🌐</div><h3>Usable by anyone</h3><p>No login or special access required — just open the link.</p></div>
+    </div>
+  </div>
+</section>
+<footer>IT student · Cybersecurity intern</footer>
+<script>
+const scenarios = [
+  {id:"phishing", icon:"📧", title:"You received a suspicious phishing email", severity:"medium",
+   do:["Don't click any link or open any attachment in the message","Verify the actual sender address, not just the display name","Report it to IT/cybersecurity immediately","Delete the message after reporting"],
+   dont:["Don't forward it to coworkers to ask their opinion","Don't reply to the sender asking if it's real"],
+   notify:"IT / Cybersecurity department"},
+  {id:"clicked-link", icon:"🔗", title:"You accidentally clicked a suspicious link", severity:"high",
+   do:["Disconnect the device from the internet/network immediately","Don't enter any password if a login page appears","Notify IT immediately and describe exactly what happened","Change your important passwords from another safe device"],
+   dont:["Don't wait to see if any damage actually occurs first","Don't restart the device yourself before IT checks it"],
+   notify:"IT department immediately"},
+  {id:"lost-device", icon:"💻", title:"Your work device was lost or stolen", severity:"high",
+   do:["Report it to IT and security as soon as you notice","Provide accurate details on the last time/place you had it","Request a remote lock/wipe if the feature is available"],
+   dont:["Don't delay reporting until the next morning","Don't try to recover it yourself in unsafe locations"],
+   notify:"IT department + physical security"},
+  {id:"wrong-recipient", icon:"📤", title:"You sent a sensitive file to the wrong person", severity:"high",
+   do:["Try to recall the message immediately if your email system supports it","Notify the wrong recipient (if internal) and ask them to delete it","Report the incident to compliance/security officially","Document what happened: where it was sent, when, what type of information"],
+   dont:["Don't hide the issue or try to resolve it quietly yourself","Don't wait to see if anyone notices first"],
+   notify:"Compliance / Data Protection team"},
+  {id:"infected-device", icon:"🦠", title:"Your device is behaving strangely (possible malware)", severity:"high",
+   do:["Disconnect the device from the network immediately","If you suspect ransomware, don't power it off completely — keep it connected for analysis","Notify IT and describe the symptoms precisely","Wait for instructions from the technical team"],
+   dont:["Don't try to fix the issue yourself","Don't use the same device to log into important accounts"],
+   notify:"IT department immediately"},
+  {id:"usb-found", icon:"💾", title:"You found a USB drive from an unknown source", severity:"medium",
+   do:["Hand it over to IT directly without plugging it in","Tell them exactly where you found it"],
+   dont:["Never plug it into your own device","Don't give it to a coworker to plug into theirs"],
+   notify:"IT department"},
+  {id:"account-compromised", icon:"🔐", title:"You suspect your account has been compromised", severity:"critical",
+   do:["Change your password immediately from another trusted device","Enable two-factor authentication if it isn't already on","Review recent account activity for anything unusual","Notify IT immediately, even after changing the password yourself"],
+   dont:["Don't rely on just changing the password and moving on","Don't ignore login notifications from an unfamiliar location"],
+   notify:"IT / Cybersecurity department"},
+  {id:"tailgating", icon:"🚪", title:"A stranger followed you through a secured door", severity:"medium",
+   do:["Politely ask if they have a badge or an escort","Direct them to reception if they don't have a badge","Notify security if they refuse to cooperate"],
+   dont:["Don't assume they're an employee just because they look presentable","Don't ignore the situation entirely"],
+   notify:"Building physical security team"},
+  {id:"printer-doc", icon:"🖨️", title:"You left a sensitive document at the printer", severity:"medium",
+   do:["Go back and retrieve it as soon as you realize","If it's already gone, report it to your manager or security","Check whether the document contained personal or confidential data"],
+   dont:["Don't assume it's fine because 'it's just internal'","Don't wait until the next day to check"],
+   notify:"Direct manager / Security team"},
+  {id:"mfa-fatigue", icon:"🔔", title:"You're getting repeated MFA login requests you didn't trigger", severity:"critical",
+   do:["Deny every request you didn't personally initiate","Change your password immediately from a trusted device","Report the repeated prompts to IT right away — this is a known attack pattern (MFA fatigue)"],
+   dont:["Don't approve a prompt just to make the notifications stop","Don't assume it's a glitch and ignore it"],
+   notify:"IT / Cybersecurity department immediately"},
+  {id:"badge-request", icon:"🪪", title:"A coworker asks to borrow your access badge", severity:"low",
+   do:["Politely decline and direct them to reception/security for a temporary badge","Explain that badges are personal for accountability reasons"],
+   dont:["Don't lend it even to someone you trust and know well","Don't let them tailgate in on your single badge swipe"],
+   notify:"No need to report unless they insist or seem suspicious"},
+  {id:"fake-support-popup", icon:"🖥️", title:"A pop-up claims your computer is infected and asks you to call a number", severity:"medium",
+   do:["Close the browser tab or window without calling anyone","Restart the browser and clear it if the pop-up persists","Report it to IT so they're aware in case others see it too"],
+   dont:["Don't call the number shown","Don't give out any payment or account details"],
+   notify:"IT department (for awareness, not urgent)"},
+  {id:"social-media-overshare", icon:"📱", title:"You realize a post you shared may reveal internal company details", severity:"medium",
+   do:["Delete or edit the post as soon as you notice","Review what exactly was visible and to whom","Let your manager or security team know if the exposure seems significant"],
+   dont:["Don't leave it up assuming no one will notice","Don't downplay it before checking what was actually visible"],
+   notify:"Direct manager / Security or Communications team"},
+];
+function renderGrid(){
+  document.getElementById('scenarioGrid').innerHTML = scenarios.map(s => `
+    <div class="scenario-card" id="card-${s.id}" onclick="showScenario('${s.id}')">
+      <div class="ic">${s.icon}</div><div>${s.title}</div>
+    </div>`).join('');
+}
+function showScenario(id){
+  const s = scenarios.find(x => x.id === id);
+  document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
+  document.getElementById(`card-${id}`).classList.add('active');
+  document.getElementById('emptyHint').style.display = 'none';
+  const severityLabel = {low:"Low", medium:"Medium", high:"High", critical:"Critical"}[s.severity];
+  const panel = document.getElementById('guidePanel');
+  panel.classList.add('show');
+  panel.innerHTML = `
+    <div class="guide-head"><h3>${s.icon} ${s.title}</h3><span class="severity ${s.severity}">Severity: ${severityLabel}</span></div>
+    <div class="col-title do">✔ Correct steps</div>
+    <ul class="steps">${s.do.map((step,i) => `<li><span class="num">${i+1}</span><span>${step}</span></li>`).join('')}</ul>
+    <div class="col-title dont">✘ Avoid these mistakes</div>
+    <ul class="donts">${s.dont.map(d => `<li><span class="x">✕</span><span>${d}</span></li>`).join('')}</ul>
+    <div class="notify-box"><b>Who to notify:</b> ${s.notify}</div>
+  `;
+}
+renderGrid();
+</script>
+</body>
+</html>
